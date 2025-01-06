@@ -16,9 +16,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome-3-1-1');
+    return view('4-0-0');
 });
 
 Route::controller(VideoController::class)->group(function () {
+    Route::post('/search', 'search')->name('search.video');
+    Route::post('/cut', 'cut')->name('cut.video');
     Route::post('/download', 'download')->name('download.video');
 });
