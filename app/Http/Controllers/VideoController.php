@@ -56,7 +56,7 @@ class VideoController extends Controller
         // Découper la vidéo avec FFmpeg
         $duration = $endTime - $startTime;
         $trimmedVideo = public_path('video/trimmed_output.mp4');
-        $commandTrim = "$ffmpegPath -i $outputVideo -ss $startTime -t $duration -c copy $trimmedVideo";
+        $commandTrim = "$ffmpegPath -i $outputVideo -ss $startTime -t $duration -c:v libx264 -c:a aac -movflags +faststart -reset_timestamps 1 $trimmedVideo";
         $test = shell_exec($commandTrim);
 
         // Vérifier si la vidéo a été découpée
