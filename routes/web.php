@@ -16,7 +16,14 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('4-0-0');
+    if (!session()->has('user')){
+        session()->put('user', (string) \Illuminate\Support\Str::uuid());
+    }
+    $userId = session()->get('user');
+
+    return view('4-0-0', [
+        'userId' => $userId
+    ]);
 });
 
 Route::controller(VideoController::class)->group(function () {
@@ -24,3 +31,4 @@ Route::controller(VideoController::class)->group(function () {
     Route::post('/cut', 'cut')->name('cut.video');
     Route::post('/download', 'download')->name('download.video');
 });
+

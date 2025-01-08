@@ -41,10 +41,21 @@
     </section>
 
     <script>
-        // Gestion de la barre de progression
-        document.addEventListener('htmx:progress', function(event) {
+        let userId = "{{ $userId }}";
 
-        });
+        const url = new URL("http://localhost:3000/.well-known/mercure");
+        url.searchParams.append('topic', "http://intro-mercure.test/users");
+
+        const eventSource = new EventSource(url);
+        eventSource.onmessage = e => {
+            console.log(e)
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if(eventSource != null){
+                eventSource.close();
+            }
+        })
     </script>
 </body>
 </html>
