@@ -37,18 +37,22 @@
     </form>
 
     <section style="margin-top: 1rem; display: flex; justify-content: center; align-items: center;" id="el-result">
-        <img width="100px" id="indicator" class="htmx-indicator" src="{{ asset('assets/svg/loading.svg') }}" />
+        {{--<img width="100px" id="indicator" class="htmx-indicator" src="{{ asset('assets/svg/loading.svg') }}" />--}}
     </section>
 
+    <p id="el-status" style="font-family: sans-serif"></p>
+
     <script>
-        let userId = "{{ $userId }}";
 
         const url = new URL("http://localhost:3000/.well-known/mercure");
-        url.searchParams.append('topic', "http://intro-mercure.test/users");
+        url.searchParams.append('topic', `{{ env('APP_URL') }}/progress/{{ $userId }}`);
 
         const eventSource = new EventSource(url);
         eventSource.onmessage = e => {
-            console.log(e)
+
+            let response = JSON.parse(e.data);
+            console.log(e.data)
+            document.getElementById("el-status").innerText = response.message
         }
 
         window.addEventListener('beforeunload', () => {

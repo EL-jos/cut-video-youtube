@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\MercureService;
 use Illuminate\Http\Request;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
@@ -9,21 +10,29 @@ use Symfony\Component\Process\Process;
 class VideoController extends Controller
 {
     //Version 4.0.0
-    public function search(Request $request){
-        $url = $request->get('url');  // URL YouTube
+    public function search(Request $request, MercureService $mercureService){
+
+        // URL de la vidéo à télécharger
+        $url = $request->get('url');
 
         // Définir le chemin vers yt-dlp
         $ytDlpPath = public_path('tools/yt-dlp/yt-dlp.exe');
 
         // Télécharger la vidéo avec yt-dlp
         $outputVideo = public_path('video/video.mp4');
+
+        $mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Téléchargement en cours..."]);
+
         $commandDownload = "$ytDlpPath -o $outputVideo $url";
         shell_exec($commandDownload);
 
         // Vérifier si la vidéo a bien été téléchargée
         if (!file_exists($outputVideo)) {
+            $mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Échec du téléchargement."]);
             return response()->json(['error' => 'Échec du téléchargement de la vidéo'], 500);
         }
+
+        $mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Téléchargement terminé !"]);
 
         return view('result.video', [
             'url' => asset('video/video.mp4'),
@@ -32,7 +41,9 @@ class VideoController extends Controller
         ]);
     }
 
-    public function cut(Request $request){
+    public function cut(Request $request, MercureService $mercureService){
+
+        $mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Découpage en cours..."]);
 
         // Récupérer les heures, minutes et secondes de début
         $startHour = (int)$request->input('start_hour');
@@ -61,7 +72,14 @@ class VideoController extends Controller
 
         // Vérifier si la vidéo a été découpée
         if (!file_exists($trimmedVideo)) {
+
+            $mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), [
+                "message" => "Échec de la découpe de la vidéo",
+                "detail" => $test
+            ]);
+
             return response()->json(['error' => 'Échec de la découpe de la vidéo', 'detail' => $test], 500);
+
         }
 
         // Supprimer la vidéo originale après le découpage
@@ -72,6 +90,9 @@ class VideoController extends Controller
         // Récupérer le format souhaité par l'utilisateur
         $format = $request->get('format');
         if ($format != 'mp4') {
+
+            $mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Conversion en $format en cours..."]);
+
             // Convertir la vidéo découpée au format choisi
             $convertedFile = public_path("video/trimmed_output.$format");
             $commandConvert = "$ffmpegPath -i $trimmedVideo $convertedFile";
@@ -82,9 +103,13 @@ class VideoController extends Controller
 
             // Vérifier si la vidéo a été convertie
             if (!file_exists($convertedFile)) {
+
+                $mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Échec de la conversion en $format."]);
                 return response()->json(['error' => 'Échec de la conversion de la vidéo'], 500);
+
             }
 
+            $mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Conversion en $format terminé !"]);
             // Télécharger le fichier converti
             if ($format === 'avi' || $format === 'mov' || $format === 'mkv' || $format === 'webm' || $format === 'flv' || $format === 'wmv' ||
                 $format === 'ogv' || $format === 'mpg' || $format === '3gp' || $format === 'ts' || $format === 'f4v' || $format === 'mpeg') {
@@ -113,6 +138,7 @@ class VideoController extends Controller
 
         }
 
+        $mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Découpage terminé !"]);
         // Télécharger directement la vidéo découpée si aucun format spécifique n'est choisi
         return view('result.video', [
             'url' => asset('video/trimmed_output.mp4'),

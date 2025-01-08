@@ -32,3 +32,12 @@ Route::controller(VideoController::class)->group(function () {
     Route::post('/download', 'download')->name('download.video');
 });
 
+
+/*Route::get('/test', function (\App\Services\MercureService $mercureService) {
+
+
+    $id = $mercureService->post("http://intro-mercure.test/users", ["message" => "Hello World!"]);
+
+    return response()->json($id);
+
+});*/

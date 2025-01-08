@@ -175,8 +175,11 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
-        \App\Providers\MercureProvider::class
+        /**
+         * Autres providers...
+         */
 
+        \App\Providers\MercureServiceProvider::class,
     ],
 
     /*
