@@ -18,26 +18,87 @@ class VideoController extends Controller
         // Définir le chemin vers yt-dlp
         $ytDlpPath = public_path('tools/yt-dlp/yt-dlp.exe');
 
+        // Récupérer le titre et la durée de la vidéo
+        $commandTitle = "$ytDlpPath --get-title $url";
+        $commandDuration = "$ytDlpPath --get-duration $url";
+
+        $mercureService->post(
+            env('APP_URL') . "/progress/" . session()->get('user'),
+            [
+                "message" => "Récuperation des informations en cours...",
+                "code" => 0,
+                "type" => 'view',
+                "data" => (object) [
+                    'width' => '10%',
+                    'readyOnly' => true
+                ]
+            ],
+            "result.progress-bar"
+        );
+
+        $title = trim(shell_exec($commandTitle));
+        $duration = trim(shell_exec($commandDuration));
+
+
         // Télécharger la vidéo avec yt-dlp
         $outputVideo = public_path('video/video.mp4');
 
-        $mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Téléchargement en cours..."]);
+        $mercureService->post(
+            env('APP_URL') . "/progress/" . session()->get('user'),
+            [
+                "message" => "Téléchargement en cours...",
+                "code" => 0,
+                "type" => 'view',
+                "data" => (object) [
+                    'width' => '50%',
+                    'readyOnly' => true
+                ]
+            ],
+            "result.progress-bar"
+        );
 
         $commandDownload = "$ytDlpPath -o $outputVideo $url";
         shell_exec($commandDownload);
 
         // Vérifier si la vidéo a bien été téléchargée
         if (!file_exists($outputVideo)) {
-            $mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Échec du téléchargement."]);
-            return response()->json(['error' => 'Échec du téléchargement de la vidéo'], 500);
+            //$mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Échec du téléchargement."]);
+            $mercureService->post(
+                env('APP_URL') . "/progress/" . session()->get('user'),
+                [
+                    "message" => "Échec du téléchargement",
+                    "code" => 1,
+                    "type" => 'view',
+                    "data" => (object) [
+                        'width' => '0%'
+                    ]
+                ],
+                "result.progress-bar"
+            );
+            //return response()->json(['error' => 'Échec du téléchargement de la vidéo'], 500);
         }
 
-        $mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Téléchargement terminé !"]);
+        //$mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Téléchargement terminé !"]);
+        $mercureService->post(
+            env('APP_URL') . "/progress/" . session()->get('user'),
+            [
+                "message" => "Téléchargement terminé !",
+                "code" => 1,
+                "type" => 'view',
+                "data" => (object) [
+                    'width' => '100%',
+                    'readyOnly' => true
+                ]
+            ],
+            "result.progress-bar"
+        );
 
         return view('result.video', [
             'url' => asset('video/video.mp4'),
             'format' => "video",
             'visible' => true,
+            'title' => $title,
+            'duration' => $duration,
         ]);
     }
 

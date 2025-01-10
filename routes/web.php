@@ -21,7 +21,7 @@ Route::get('/', function () {
     }
     $userId = session()->get('user');
 
-    return view('4-0-0', [
+    return view('index', [
         'userId' => $userId
     ]);
 });
@@ -33,11 +33,9 @@ Route::controller(VideoController::class)->group(function () {
 });
 
 
-/*Route::get('/test', function (\App\Services\MercureService $mercureService) {
+Route::get('/test', function (\App\Services\MercureService $mercureService) {
 
 
-    $id = $mercureService->post("http://intro-mercure.test/users", ["message" => "Hello World!"]);
 
-    return response()->json($id);
 
-});*/
+});
