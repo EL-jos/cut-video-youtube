@@ -8,6 +8,10 @@ class TimeInput extends HTMLElement {
         this.render();
         this.setupIncrementDecrement();
         this.setInitialValues();
+        this.form = this.closest('form');
+        if (this.form) {
+            this.form.addEventListener('submit', (event) => this.handleSubmit(event));
+        }
     }
 
     render() {
@@ -86,7 +90,7 @@ class TimeInput extends HTMLElement {
                                 <button class="el-up">
                                     <i class="fas fa-chevron-up"></i>
                                 </button>
-                                
+
                                 <button class="el-down">
                                     <i class="fas fa-chevron-down"></i>
                                 </button>
@@ -159,22 +163,37 @@ class TimeInput extends HTMLElement {
     }
 
     setInitialValues() {
-        // Si des valeurs sont passées dans les attributs, les utiliser
+        // Vérification des attributs explicites
         const startHour = this.getAttribute('start-hour') || '00';
         const startMinute = this.getAttribute('start-minute') || '00';
         const startSecond = this.getAttribute('start-second') || '00';
-        
+
         const endHour = this.getAttribute('end-hour') || '00';
         const endMinute = this.getAttribute('end-minute') || '00';
         const endSecond = this.getAttribute('end-second') || '00';
-        
-        this.shadowRoot.querySelector('input[name="start_hour"]').value = startHour;
-        this.shadowRoot.querySelector('input[name="start_minute"]').value = startMinute;
-        this.shadowRoot.querySelector('input[name="start_second"]').value = startSecond;
-        
-        this.shadowRoot.querySelector('input[name="end_hour"]').value = endHour;
-        this.shadowRoot.querySelector('input[name="end_minute"]').value = endMinute;
-        this.shadowRoot.querySelector('input[name="end_second"]').value = endSecond;
+
+        // Si aucune durée explicite n'est fournie, essayer avec start-duration / end-duration
+        const startDuration = this.getAttribute('start-duration');
+        const endDuration = this.getAttribute('end-duration');
+
+        // Si start-duration ou end-duration est fourni, utiliser parseDuration
+        if (startDuration) {
+            this.parseDuration(startDuration, 'start');
+        } else {
+            // Sinon, utiliser les valeurs explicites d'heure, minute et seconde
+            this.shadowRoot.querySelector('input[name="start_hour"]').value = startHour;
+            this.shadowRoot.querySelector('input[name="start_minute"]').value = startMinute;
+            this.shadowRoot.querySelector('input[name="start_second"]').value = startSecond;
+        }
+
+        if (endDuration) {
+            this.parseDuration(endDuration, 'end');
+        } else {
+            // Utilisation des valeurs explicites d'heure, minute et seconde pour end
+            this.shadowRoot.querySelector('input[name="end_hour"]').value = endHour;
+            this.shadowRoot.querySelector('input[name="end_minute"]').value = endMinute;
+            this.shadowRoot.querySelector('input[name="end_second"]').value = endSecond;
+        }
     }
 
     setupIncrementDecrement() {
@@ -202,12 +221,12 @@ class TimeInput extends HTMLElement {
     updateValue(input, step) {
         let value = parseInt(input.value) || 0;
         const name = input.getAttribute('name');
-    
+
         if (name.includes('hour')) {
             value = (value + step + 24) % 24;
         } else if (name.includes('minute') || name.includes('second')) {
             value += step;
-    
+
             if (value > 59) {
                 value = 0;
                 this.incrementParent(input, name);
@@ -216,16 +235,14 @@ class TimeInput extends HTMLElement {
                 this.decrementParent(input, name);
             }
         }
-    
+
         input.value = value.toString().padStart(2, '0');
-    
+
         // Vérification après chaque modification
         if (name.includes('end')) {
             this.checkTimeOrder();
         }
     }
-    
-    
 
     validateInput(input) {
         let value = parseInt(input.value) || 0;
@@ -245,11 +262,11 @@ class TimeInput extends HTMLElement {
         const startHour = parseInt(this.shadowRoot.querySelector('input[name="start_hour"]').value) || 0;
         const startMinute = parseInt(this.shadowRoot.querySelector('input[name="start_minute"]').value) || 0;
         const startSecond = parseInt(this.shadowRoot.querySelector('input[name="start_second"]').value) || 0;
-    
+
         const endHour = parseInt(this.shadowRoot.querySelector('input[name="end_hour"]').value) || 0;
         const endMinute = parseInt(this.shadowRoot.querySelector('input[name="end_minute"]').value) || 0;
         const endSecond = parseInt(this.shadowRoot.querySelector('input[name="end_second"]').value) || 0;
-    
+
         // Vérifier si la plage de fin est inférieure à la plage de début
         if (
             endHour < startHour ||
@@ -261,7 +278,6 @@ class TimeInput extends HTMLElement {
             this.shadowRoot.querySelector('input[name="end_second"]').value = startSecond.toString().padStart(2, '0');
         }
     }
-    
 
     incrementParent(input, name) {
         if (name.includes('second')) {
@@ -276,7 +292,7 @@ class TimeInput extends HTMLElement {
             this.updateValue(hourInput, 1);
         }
     }
-    
+
     decrementParent(input, name) {
         if (name.includes('second')) {
             const minuteInput = input.name.includes('start')
@@ -290,8 +306,6 @@ class TimeInput extends HTMLElement {
             this.updateValue(hourInput, -1);
         }
     }
-    
-    
 
     getCounterpartName(name) {
         if (name.includes('start')) {
@@ -299,6 +313,50 @@ class TimeInput extends HTMLElement {
         }
         return name.replace('end', 'start');
     }
+
+    parseDuration(duration, type) {
+        // Si la durée contient ":", on peut avoir h:mm:ss ou m:ss
+        if (duration.includes(':')) {
+            // Diviser la chaîne en fonction de ":"
+            const parts = duration.split(':');
+
+            if (parts.length === 3) {
+                // Format h:mm:ss
+                const [hours, minutes, seconds] = parts;
+                this.shadowRoot.querySelector(`input[name="${type}_hour"]`).value = hours;
+                this.shadowRoot.querySelector(`input[name="${type}_minute"]`).value = minutes || '00';
+                this.shadowRoot.querySelector(`input[name="${type}_second"]`).value = seconds || '00';
+            } else if (parts.length === 2) {
+                // Format m:ss ou mm:ss
+                const [minutes, seconds] = parts;
+                this.shadowRoot.querySelector(`input[name="${type}_minute"]`).value = minutes;
+                this.shadowRoot.querySelector(`input[name="${type}_second"]`).value = seconds || '00';
+            }
+        } else {
+            // Cas où la durée est juste en secondes (s)
+            this.shadowRoot.querySelector(`input[name="${type}_second"]`).value = duration;
+        }
+    }
+
+    handleSubmit(event) {
+        // Synchronisation des valeurs des inputs dans le shadow DOM avant la soumission
+        const startHour = this.shadowRoot.querySelector('[name="start_hour"]').value;
+        const startMinute = this.shadowRoot.querySelector('[name="start_minute"]').value;
+        const startSecond = this.shadowRoot.querySelector('[name="start_second"]').value;
+
+        const endHour = this.shadowRoot.querySelector('[name="end_hour"]').value;
+        const endMinute = this.shadowRoot.querySelector('[name="end_minute"]').value;
+        const endSecond = this.shadowRoot.querySelector('[name="end_second"]').value;
+
+        // Assurez-vous que les valeurs sont mises à jour dans le formulaire
+        this.setAttribute('start-hour', startHour);
+        this.setAttribute('start-minute', startMinute);
+        this.setAttribute('start-second', startSecond);
+        this.setAttribute('end-hour', endHour);
+        this.setAttribute('end-minute', endMinute);
+        this.setAttribute('end-second', endSecond);
+    }
+
 }
 
 customElements.define('time-input', TimeInput);

@@ -290,7 +290,11 @@ body{
     color: #fff;
     text-shadow: 0 1px 0 #5d6570;
     text-align: center;
-}
+}#el-response{
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+ }
 
 .el-video-btn{
     color: #5d6570;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,8 +11,7 @@
     <script src="https://vjs.zencdn.net/ie8/1.1.2/videojs-ie8.min.js"></script>
     <!-- FONTAWESOME -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <!-- WEB COMPONENT -->
-    <script src="{{ asset('assets/js/components/timeInput.js')}}"></script>
+
     <link rel="stylesheet" href="{{ asset('assets/css/style.css')}}">
     <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
 </head>
@@ -50,68 +49,12 @@
                                                 <div class="el-divider"></div>
                                                 <section id="el-section-two">
                                                     <div class="txt_shadow_1 circle_step el-box-center">2</div>
-                                                    @include('result.video')
-                                                    <div style="display: flex; flex-direction: column; gap: 1rem;" class="el-container-controls-video">
-                                                        <time-input
-                                                            start-hour="00"
-                                                            start-minute="00"
-                                                            start-second="00"
-                                                            end-hour="17"
-                                                            end-minute="45"
-                                                            end-second="00">
-                                                        </time-input>
-                                                        <div class="el-select">
-                                                            <div class="el-container">
-                                                                <span>Convertir en format ?</span>
-                                                            </div>
-                                                            <div class="el-content">
-                                                                <div data-value="mp4">
-                                                                    <h3>MP4</h3>
-                                                                    <span>Vidéo</span>
-                                                                </div>
-                                                                <div data-value="avi">
-                                                                    <h3>AVI</h3>
-                                                                    <span>Vidéo</span>
-                                                                </div>
-                                                                <div data-value="mov">
-                                                                    <h3>MOV</h3>
-                                                                    <span>Vidéo</span>
-                                                                </div>
-                                                                <div data-value="mkv">
-                                                                    <h3>MKV</h3>
-                                                                    <span>Vidéo</span>
-                                                                </div>
-                                                                <div data-value="mp3">
-                                                                    <h3>MP3</h3>
-                                                                    <span>Audio</span>
-                                                                </div>
-                                                                <div data-value="wav">
-                                                                    <h3>WAV</h3>
-                                                                    <span>Audio</span>
-                                                                </div>
-                                                                <div data-value="aac">
-                                                                    <h3>AAC</h3>
-                                                                    <span>Audio</span>
-                                                                </div>
-                                                                <div data-value="flac">
-                                                                    <h3>FLAC</h3>
-                                                                    <span>Audio</span>
-                                                                </div>
-                                                            </div>
-                                                            <div class="el-arrow"></div>
-                                                            <select style="display: none;" name="format" id="format"></select>
-                                                        </div>
-                                                        <a style="margin-top: 4.7rem;" href="javascript:;" class="el-video-btn el-active el-box-center">
-                                                            <div class="el-inner-1">
-                                                                <div class="el-inner-2">
-                                                                    Couper
-                                                                </div>
-                                                            </div>
-                                                        </a>
+                                                    <div id="el-response">
+                                                        @include('result.video')
                                                     </div>
 
                                                 </section>
-                                                <div class="el-divider"></div>
+                                                {{--<div class="el-divider"></div>
                                                 <section id="el-section-three">
                                                     <div class="txt_shadow_1 circle_step el-box-center">3</div>
                                                     <a href="javascript:;" class="el-video-btn el-download el-box-center">
@@ -121,7 +64,7 @@
                                                             </div>
                                                         </div>
                                                     </a>
-                                                </section>
+                                                </section>--}}
                                             </div>
                                         </div>
                                     </div>
@@ -136,43 +79,6 @@
 </div>
 <!-- FONTAWESOME -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
-
-<script>
-
-
-    let el_select = document.querySelector('.el-select');
-    el_select.addEventListener('click', () => {
-        el_select.classList.toggle('el-active');
-    });
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const elContent = el_select.querySelector('.el-content');
-        const spanText = el_select.querySelector('.el-container span');
-        const selectElement = el_select.querySelector('#format');
-
-        // Remplir le select avec les options
-        const options = elContent.querySelectorAll('div');
-        options.forEach(option => {
-            const value = option.getAttribute('data-value');
-            const optionElement = document.createElement('option');
-            optionElement.value = value;
-            optionElement.textContent = option.querySelector('h3').textContent;
-            selectElement.appendChild(optionElement);
-        });
-
-        // Ajouter l'événement de clic sur chaque élément de .el-content
-        elContent.addEventListener('click', function (e) {
-            const selectedElement = e.target.closest('div[data-value]');
-            if (selectedElement) {
-                const selectedValue = selectedElement.getAttribute('data-value');
-                // Mettre à jour le select
-                selectElement.value = selectedValue;
-                // Modifier le texte du span
-                spanText.textContent = `Convertir en format ${selectedValue}`;
-            }
-        });
-    });
-</script>
 
 <script>
 
