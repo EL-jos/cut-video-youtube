@@ -253,7 +253,7 @@ class VideoController extends Controller
                     "code" => 0,
                     "type" => 'view',
                     "data" => (object) [
-                        'width' => '90%',
+                        'width' => '100%',
                         'readyOnly' => true
                     ]
                 ],
@@ -266,7 +266,7 @@ class VideoController extends Controller
                     'url' => asset('video/trimmed_output.'.$format),
                     'format' => "video",
                     'visible' => true,
-                    //'exist' => false
+                    'exist' => false
                 ]);
             }elseif ($format === 'mp3' || $format === 'wav' || $format === 'aac' || $format === 'flac' || $format === 'ogg' || $format === 'm4a' ||
                 $format === 'opus' || $format === 'wma' || $format === 'alac') {
@@ -274,14 +274,16 @@ class VideoController extends Controller
                     'url' => asset('video/trimmed_output.'.$format),
                     'format' => "audio",
                     'visible' => true,
-                    //'exist' => false
+                    'exist' => false,
+                    'extension' => $format
                 ]);
+
             }elseif ($format === 'webp' || $format === 'jpg' || $format === 'png' || $format === 'bmp' || $format === 'gif') {
                 return view('result.video', [
                     'url' => asset('video/trimmed_output.'.$format),
                     'format' => "image",
                     'visible' => true,
-                    //'exist' => false
+                    'exist' => false
                 ]);
 
             }

@@ -87,34 +87,41 @@
 </style>
 <!-- VIDEO.JS -->
 <script src="https://vjs.zencdn.net/8.16.1/video.min.js"></script>
+<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 <div @if(!isset($exist)) style="max-width: none;" @endif id="el-video" class="el-video-area">
     <img src="{{ asset('assets/images/tab_2.png')}}" alt="">
     <div class="el-title">
         <h5>{{ $title ?? "Aucun vidéo n'est disponible, veillez coller un lien pour télécharger la vidéo" }}</h5>
         <p>{{ $duration ?? '00:00:00' }}</p>
     </div>
-    <video src="{{ $url ?? '' }}" controls id="el-video-js" class="video-js vjs-theme-city"
-           preload="auto" width="100%" height="264" data-setup="{}">
+    @if(isset($format) && $format === "video")
+        <video src="{{ $url ?? '' }}" controls id="el-video-js" class="video-js vjs-theme-city"
+               preload="auto" width="100%" height="264" data-setup="{}">
 
-        <p class="vjs-no-js">
-            Pour visionner cette vidéo, veuillez activer JavaScript et envisagez de passer à une version plus récente du navigateur web qui
-            <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
-        </p>
+            <p class="vjs-no-js">
+                Pour visionner cette vidéo, veuillez activer JavaScript et envisagez de passer à une version plus récente du navigateur web qui
+                <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+            </p>
 
-    </video>
-    @if(isset($visible) && $visible)
-        <a href="javascript:;" onclick="document.getElementById('el-form-download').submit()" class="el-video-btn el-download el-box-center">
-            <form id="el-form-download" action="{{ route('download.video') }}" method="POST">
-                @csrf
-                <input type="hidden" value="{{ $url }}" name="url" readonly required />
-            </form>
-            <div class="el-inner-1">
-                <div class="el-inner-2">
-                    Télécharger le fichier
-                </div>
-            </div>
-        </a>
+        </video>
+    @elseif(isset($format) && $format === "audio")
+        <audio id="player-audio" controls>
+            <source src="{{ $url }}" type="audio/{{ $extension }}">
+        </audio>
+    @else
+        <video src="{{ $url ?? '' }}" controls id="el-video-js" class="video-js vjs-theme-city"
+               preload="auto" width="100%" height="264" data-setup="{}">
+
+            <p class="vjs-no-js">
+                Pour visionner cette vidéo, veuillez activer JavaScript et envisagez de passer à une version plus récente du navigateur web qui
+                <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+            </p>
+
+        </video>
     @endif
+
+
 </div>
 
 <form style="display: flex; flex-direction: column; gap: 1rem;" class="el-container-controls-video"
@@ -261,6 +268,19 @@
     @endif
 
 </form>
+@if(isset($visible) && $visible)
+    <a href="javascript:;" onclick="document.getElementById('el-form-download').submit()" class="el-video-btn el-download el-box-center">
+        <form id="el-form-download" action="{{ route('download.video') }}" method="POST">
+            @csrf
+            <input type="hidden" value="{{ $url }}" name="url" readonly required />
+        </form>
+        <div class="el-inner-1">
+            <div class="el-inner-2">
+                Télécharger le fichier
+            </div>
+        </div>
+    </a>
+@endif
 
 
 <script>
@@ -282,6 +302,7 @@
     });
 </script>
 
+
 @if(isset($exist) && $exist)
     <script>
         let el_select = document.querySelector('.el-select');
@@ -289,7 +310,6 @@
             el_select.classList.toggle('el-active');
         });
 
-        document.addEventListener('DOMContentLoaded', function () {
             const elContent = el_select.querySelector('.el-content');
             const spanText = el_select.querySelector('.el-container span');
             const selectElement = el_select.querySelector('#format');
@@ -315,7 +335,6 @@
                     spanText.textContent = `Convertir en format ${selectedValue}`;
                 }
             });
-        });
     </script>
     <script>
         function setupForContainer(container) {
@@ -427,3 +446,12 @@
         setupForContainer(container);
     </script>
 @endif
+
+@if(isset($format) && $format === "audio")
+    <script>
+        const player = new Plyr('#player-audio', {
+            settings: []
+        });
+    </script>
+@endif
+
