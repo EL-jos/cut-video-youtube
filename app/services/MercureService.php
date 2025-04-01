@@ -31,13 +31,19 @@ class MercureService
         ]);
 
         // Envoyer la requête au Hub Mercure
-        $response = file_get_contents($this->mercureUrl, false, stream_context_create([
-            'http' => [
-                'method'  => 'POST',
-                'header'  => "Content-type: application/x-www-form-urlencoded\r\nAuthorization: Bearer " . $this->jwtKey . "\r\n",
-                'content' => $postData
-            ]
-        ]));
+        $response = file_get_contents(
+            $this->mercureUrl,
+            false,
+            stream_context_create(
+                [
+                    'http' => [
+                        'method'  => 'POST',
+                        'header'  => "Content-type: application/x-www-form-urlencoded\r\nAuthorization: Bearer " . $this->jwtKey . "\r\n",
+                        'content' => $postData
+                    ]
+                ]
+            )
+        );
 
         return $response;
     }
