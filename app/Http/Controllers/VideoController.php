@@ -9,8 +9,92 @@ use Symfony\Component\Process\Process;
 
 class VideoController extends Controller
 {
+    // Version 4.1.0
+    public function search(Request $request, MercureService $mercureService)
+    {
+        $url = $request->get('url');
+
+        $ytDlpPath = public_path('tools/yt-dlp/yt-dlp.exe');
+        $ffmpegPath = public_path('tools/ffmpeg');
+        $outputTemplate = public_path('video/video.%(ext)s');
+        $finalVideoPath = public_path('video/video.mp4');
+
+        // Étape 1 : récupérer le titre
+        $commandTitle = "powershell -Command \"& { & '$ytDlpPath' --get-title '$url' }\"";
+        $title = trim(shell_exec($commandTitle));
+
+        // Étape 2 : récupérer la durée
+        $commandDuration = "powershell -Command \"& { & '$ytDlpPath' --get-duration '$url' }\"";
+        $duration = trim(shell_exec($commandDuration));
+
+        // Affichage progression - récupération des infos
+        $mercureService->post(
+            env('APP_URL') . "/progress/" . session()->get('user'),
+            [
+                "message" => "Téléchargement en cours...",
+                "code" => 0,
+                "type" => 'view',
+                "data" => (object) [
+                    'width' => '50%',
+                    'readyOnly' => true
+                ]
+            ],
+            "result.progress-bar"
+        );
+
+        // Étape 3 : téléchargement vidéo + audio + fusion (ffmpeg via PATH temporaire)
+        $commandDownload = "set PATH=$ffmpegPath;%PATH% && \"$ytDlpPath\" -o \"$outputTemplate\" -f bestvideo+bestaudio --merge-output-format mp4 \"$url\"";
+        shell_exec($commandDownload);
+
+        // Vérification de l'existence de la vidéo finale
+        if (!file_exists($finalVideoPath)) {
+            $mercureService->post(
+                env('APP_URL') . "/progress/" . session()->get('user'),
+                [
+                    "message" => "Échec du téléchargement",
+                    "code" => 1,
+                    "type" => 'view',
+                    "data" => (object) [
+                        'width' => '0%'
+                    ]
+                ],
+                "result.progress-bar"
+            );
+
+            return view('result.video', [
+                'exist' => false
+            ]);
+        }
+
+        // Affichage progression - téléchargement terminé
+        $mercureService->post(
+            env('APP_URL') . "/progress/" . session()->get('user'),
+            [
+                "message" => "Téléchargement terminé !",
+                "code" => 1,
+                "type" => 'view',
+                "data" => (object) [
+                    'width' => '100%',
+                    'readyOnly' => true
+                ]
+            ],
+            "result.progress-bar"
+        );
+
+        // Vue finale avec titre, durée et URL
+        return view('result.video', [
+            'url' => asset('video/video.mp4'),
+            'format' => "video",
+            'title' => $title,
+            'duration' => $duration,
+            'exist' => true
+        ]);
+    }
+
+
+
     //Version 4.0.0
-    public function search(Request $request, MercureService $mercureService){
+    /*public function search(Request $request, MercureService $mercureService){
 
         // URL de la vidéo à télécharger
         $url = $request->get('url');
@@ -62,7 +146,6 @@ class VideoController extends Controller
 
         // Vérifier si la vidéo a bien été téléchargée
         if (!file_exists($outputVideo)) {
-            //$mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Échec du téléchargement."]);
             $mercureService->post(
                 env('APP_URL') . "/progress/" . session()->get('user'),
                 [
@@ -75,10 +158,8 @@ class VideoController extends Controller
                 ],
                 "result.progress-bar"
             );
-            //return response()->json(['error' => 'Échec du téléchargement de la vidéo'], 500);
         }
 
-        //$mercureService->post(env('APP_URL') . "/progress/" . session()->get('user'), ["message" => "Téléchargement terminé !"]);
         $mercureService->post(
             env('APP_URL') . "/progress/" . session()->get('user'),
             [
@@ -100,7 +181,7 @@ class VideoController extends Controller
             'duration' => $duration,
             'exist' => true
         ]);
-    }
+    }*/
 
     public function cut(Request $request, MercureService $mercureService){
 
