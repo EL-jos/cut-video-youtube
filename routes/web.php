@@ -1,5 +1,7 @@
 <?php
-set_time_limit(5400); // Définit une limite d'exécution de 5400 secondes
+// Désactive complètement la limite d'exécution
+ini_set('max_execution_time', 0);
+set_time_limit(0);
 
 use App\Http\Controllers\VideoController;
 use Illuminate\Support\Facades\Route;
